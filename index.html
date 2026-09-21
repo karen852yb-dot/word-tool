@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>单词记忆工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            background: #f5f7fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #2d3748;
+        }
+
+        .upload-area {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f0f7ff;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .upload-area p {
+            margin-bottom: 10px;
+            color: #4a5568;
+        }
+
+        #wordFile {
+            padding: 5px;
+        }
+
+        .jump-area {
+            margin-bottom: 25px;
+            padding: 12px 18px;
+            background: #fefcbf;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .jump-area label {
+            font-weight: bold;
+            color: #2d3748;
+            font-size: 15px;
+        }
+
+        .jump-area input {
+            padding: 8px 14px;
+            font-size: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            outline: none;
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .jump-area input:focus {
+            border-color: #4299e1;
+        }
+
+        #jumpBtn {
+            padding: 8px 20px;
+            background: #4299e1;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        #jumpBtn:hover {
+            background: #3182ce;
+        }
+
+        #jumpMsg {
+            color: #e53e3e;
+            font-size: 14px;
+        }
+
+        .main-content {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 25px;
+        }
+
+        .left-card,
+        .right-card {
+            flex: 1;
+            background: #fafbfc;
+            border-radius: 10px;
+            padding: 25px 30px;
+            min-height: 350px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .word-display {
+            font-size: 36px;
+            font-weight: bold;
+            color: #2d3748;
+            cursor: pointer;
+            margin-bottom: 2px;
+        }
+
+        .phonetic {
+            font-size: 20px;
+            color: #8899aa;
+            font-weight: 400;
+            margin-bottom: 6px;
+        }
+
+        .divider-line {
+            border: none;
+            border-top: 1px solid #e2e8f0;
+            margin: 10px 0 14px 0;
+        }
+
+        .left-item {
+            margin-bottom: 4px;
+        }
+
+        .left-item-sm {
+            margin-bottom: 2px;
+        }
+
+        .left-spacer {
+            height: 14px;
+        }
+
+        .left-spacer-lg {
+            height: 20px;
+        }
+
+        .meaning-text {
+            font-size: 20px;
+            color: #48bb78;
+            font-weight: 500;
+        }
+        .meaning-text.hidden {
+            display: none;
+        }
+
+        .phrase-text {
+            font-size: 19px;
+            color: #d69e2e;
+            font-weight: 500;
+        }
+
+        .phrase-cn-text {
+            font-size: 16px;
+            color: #718096;
+        }
+        .phrase-cn-text.hidden {
+            display: none;
+        }
+
+        .sentence-text {
+            font-size: 17px;
+            color: #4a5568;
+        }
+
+        .sentence-cn-text {
+            font-size: 16px;
+            color: #718096;
+        }
+        .sentence-cn-text.hidden {
+            display: none;
+        }
+
+        .input-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+
+        #wordInput,
+        #phraseInput,
+        #sentenceInput,
+        #meaningInput {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            outline: none;
+            margin-bottom: 15px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        #wordInput:focus,
+        #phraseInput:focus,
+        #sentenceInput:focus,
+        #meaningInput:focus {
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+        }
+
+        #wordInput.error,
+        #phraseInput.error,
+        #sentenceInput.error,
+        #meaningInput.error {
+            border-color: #e53e3e;
+            box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.15);
+            background: #fff5f5;
+        }
+
+        #wordInput.correct-input,
+        #phraseInput.correct-input,
+        #sentenceInput.correct-input,
+        #meaningInput.correct-input {
+            border-color: #38a169;
+            box-shadow: 0 0 0 3px rgba(56, 161, 105, 0.15);
+            background: #f0fff4;
+        }
+
+        .tip-area {
+            min-height: 50px;
+            margin-bottom: 5px;
+        }
+
+        .tip-correct {
+            color: #38a169;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .tip-error {
+            color: #e53e3e;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .tip-error-item {
+            color: #e53e3e;
+            font-size: 15px;
+            font-weight: 500;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .tip-hint {
+            color: #a0aec0;
+            font-size: 16px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        #prevBtn {
+            background: #38b2ac;
+            color: white;
+        }
+        #prevBtn:hover {
+            background: #319795;
+        }
+
+        #nextBtn {
+            background: #4299e1;
+            color: white;
+        }
+        #nextBtn:hover {
+            background: #3182ce;
+        }
+
+        #playBtn {
+            background: #9f7aea;
+            color: white;
+        }
+        #playBtn:hover {
+            background: #805ad5;
+        }
+        #playBtn.running {
+            background: #e53e3e;
+        }
+        #playBtn.running:hover {
+            background: #c53030;
+        }
+
+        #wordOnlyBtn {
+            background: #0ea5e9;
+            color: white;
+        }
+        #wordOnlyBtn:hover {
+            background: #0284c7;
+        }
+        #wordOnlyBtn.running {
+            background: #e53e3e;
+        }
+        #wordOnlyBtn.running:hover {
+            background: #c53030;
+        }
+
+        #stopBtn {
+            background: #f56565;
+            color: white;
+        }
+        #stopBtn:hover {
+            background: #e53e3e;
+        }
+
+        #autoAllBtn {
+            background: #ed8936;
+            color: white;
+        }
+        #autoAllBtn:hover {
+            background: #dd6b20;
+        }
+        #autoAllBtn.running {
+            background: #e53e3e;
+        }
+        #autoAllBtn.running:hover {
+            background: #c53030;
+        }
+
+        #autoAllCnBtn {
+            background: #38a169;
+            color: white;
+        }
+        #autoAllCnBtn:hover {
+            background: #2f855a;
+        }
+        #autoAllCnBtn.running {
+            background: #e53e3e;
+        }
+        #autoAllCnBtn.running:hover {
+            background: #c53030;
+        }
+
+        #hideMeaningBtn {
+            background: #6b46c1;
+            color: white;
+        }
+        #hideMeaningBtn:hover {
+            background: #553c9a;
+        }
+        #hideMeaningBtn.active {
+            background: #e53e3e;
+        }
+        #hideMeaningBtn.active:hover {
+            background: #c53030;
+        }
+
+        #hideSentenceCnBtn {
+            background: #d69e2e;
+            color: white;
+        }
+        #hideSentenceCnBtn:hover {
+            background: #b7791f;
+        }
+        #hideSentenceCnBtn.active {
+            background: #e53e3e;
+        }
+        #hideSentenceCnBtn.active:hover {
+            background: #c53030;
+        }
+
+        #hidePhraseCnBtn {
+            background: #2b6cb0;
+            color: white;
+        }
+        #hidePhraseCnBtn:hover {
+            background: #2c5282;
+        }
+        #hidePhraseCnBtn.active {
+            background: #e53e3e;
+        }
+        #hidePhraseCnBtn.active:hover {
+            background: #c53030;
+        }
+
+        .progress {
+            text-align: center;
+            color: #718096;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">📖 单词记忆工具</h1>
+
+        <div class="upload-area">
+            <p>请上传 Excel 文件（.xlsx）<br>表头必须是：<strong>单词，英文音标，词性+中文释义，英文造句，造句中文，词组，词组释义</strong></p>
+            <input type="file" id="wordFile" accept=".xlsx">
+        </div>
+
+        <div class="jump-area">
+            <label>🔍 跳转到单词：</label>
+            <input type="text" id="jumpInput" placeholder="输入要跳转的单词...">
+            <button id="jumpBtn">跳转</button>
+            <span id="jumpMsg"></span>
+        </div>
+
+        <div class="main-content">
+            <div class="left-card">
+                <div class="word-display" id="wordText" title="点击朗读单词"></div>
+                <div class="phonetic" id="phonetic"></div>
+
+                <hr class="divider-line">
+
+                <div class="left-item">
+                    <span class="meaning-text" id="wordChina"></span>
+                </div>
+
+                <div class="left-spacer"></div>
+
+                <div class="left-item">
+                    <span class="phrase-text" id="phrase"></span>
+                </div>
+
+                <div class="left-item-sm">
+                    <span class="phrase-cn-text" id="phraseCn"></span>
+                </div>
+
+                <div class="left-spacer-lg"></div>
+
+                <div class="left-item">
+                    <span class="sentence-text" id="sentence"></span>
+                </div>
+
+                <div class="left-item-sm">
+                    <span class="sentence-cn-text" id="sentenceChina"></span>
+                </div>
+            </div>
+
+            <div class="right-card">
+                <div class="input-title">✏️ 请输入单词：</div>
+                <input type="text" id="wordInput" placeholder="输入单词原型...">
+
+                <div class="input-title" style="margin-top:10px;">✏️ 请输入词组：</div>
+                <input type="text" id="phraseInput" placeholder="输入词组（不区分大小写）...">
+
+                <div class="input-title" style="margin-top:10px;">✏️ 请输入英文造句：</div>
+                <input type="text" id="sentenceInput" placeholder="输入完整英文造句（不区分大小写）...">
+
+                <div class="input-title" style="margin-top:10px;">✏️ 请输入词性+中文释义：</div>
+                <input type="text" id="meaningInput" placeholder="输入词性+中文（可只输中文）...">
+
+                <div class="tip-area" id="tip"></div>
+
+                <div class="btn-group">
+                    <button id="playBtn">🔊 朗读单词</button>
+                    <button id="wordOnlyBtn">🔤 单词阅读</button>
+                    <button id="stopBtn">🛑 停止朗读</button>
+                    <button id="autoAllBtn">▶️ 自动播放全部</button>
+                    <button id="autoAllCnBtn">▶️ 自动播放全部（含中文）</button>
+                    <button id="hideMeaningBtn">👁️ 屏蔽释义</button>
+                    <button id="hidePhraseCnBtn">👁️ 屏蔽词组释义</button>
+                    <button id="hideSentenceCnBtn">👁️ 屏蔽造句中文</button>
+                    <button id="prevBtn">⬅️ 上一个</button>
+                    <button id="nextBtn">➡️ 下一个</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="progress">进度：<span id="current">0</span> / <span id="total">0</span></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js">
+    </script>
+
+    <script>
+        let wordList = [];
+        let currentIndex = 0;
+        let playInterval = null;
+        let autoAllInterval = null;
+        let isPlaying = false;
+        let isAutoAllPlaying = false;
+        let autoAllIndex = 0;
+        let isMeaningHidden = false;
+        let isSentenceCnHidden = false;
+        let isPhraseCnHidden = false;
+
+        // ===== 新增：单词阅读状态 =====
+        let isWordOnlyReading = false;
+        let wordOnlyIndex = 0;
+        let wordOnlyInterval = null;
+
+        const wordText = document.getElementById('wordText');
+        const phonetic = document.getElementById('phonetic');
+        const wordChina = document.getElementById('wordChina');
+        const phrase = document.getElementById('phrase');
+        const phraseCn = document.getElementById('phraseCn');
+        const sentence = document.getElementById('sentence');
+        const sentenceChina = document.getElementById('sentenceChina');
+        const wordInput = document.getElementById('wordInput');
+        const phraseInput = document.getElementById('phraseInput');
+        const sentenceInput = document.getElementById('sentenceInput');
+        const meaningInput = document.getElementById('meaningInput');
+        const tip = document.getElementById('tip');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const playBtn = document.getElementById('playBtn');
+        const wordOnlyBtn = document.getElementById('wordOnlyBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const autoAllBtn = document.getElementById('autoAllBtn');
+        const autoAllCnBtn = document.getElementById('autoAllCnBtn');
+        const hideMeaningBtn = document.getElementById('hideMeaningBtn');
+        const hidePhraseCnBtn = document.getElementById('hidePhraseCnBtn');
+        const hideSentenceCnBtn = document.getElementById('hideSentenceCnBtn');
+        const jumpInput = document.getElementById('jumpInput');
+        const jumpBtn = document.getElementById('jumpBtn');
+        const jumpMsg = document.getElementById('jumpMsg');
+        const currentSpan = document.getElementById('current');
+        const totalSpan = document.getElementById('total');
+        const wordFile = document.getElementById('wordFile');
+
+        // ===== 清除所有输入框的高亮状态 =====
+        function clearAllInputStyles() {
+            [wordInput, phraseInput, sentenceInput, meaningInput].forEach(el => {
+                el.classList.remove('error', 'correct-input');
+            });
+        }
+
+        // ===== 检查单个输入项 =====
+        function checkWordMatch() {
+            if (wordList.length === 0) return false;
+            const w = wordList[currentIndex];
+            const input = wordInput.value.trim().toLowerCase();
+            const target = (w.origin || '').toLowerCase();
+            return input === target && input !== '';
+        }
+
+        function checkPhraseMatch() {
+            if (wordList.length === 0) return false;
+            const w = wordList[currentIndex];
+            const input = phraseInput.value.trim().toLowerCase();
+            const target = (w.phrase || '').trim().toLowerCase();
+            return input === target && input !== '';
+        }
+
+        function checkSentenceMatch() {
+            if (wordList.length === 0) return false;
+            const w = wordList[currentIndex];
+            const input = sentenceInput.value.trim().toLowerCase();
+            const target = (w.sentence || '').trim().toLowerCase();
+            return input === target && input !== '';
+        }
+
+        function checkMeaningMatch() {
+            if (wordList.length === 0) return false;
+            const w = wordList[currentIndex];
+            const input = meaningInput.value.trim();
+            const target = (w.meaning || '').trim();
+            if (input === '') return false;
+            return target.toLowerCase().includes(input.toLowerCase());
+        }
+
+        // ===== 检查全部 =====
+        function checkAllCorrect() {
+            if (wordList.length === 0) return false;
+            return checkWordMatch() && checkPhraseMatch() && checkSentenceMatch() && checkMeaningMatch();
+        }
+
+        // ===== 更新输入框样式和提示 =====
+        function updateInputStyles() {
+            if (wordList.length === 0) return;
+
+            const wordOk = checkWordMatch();
+            const phraseOk = checkPhraseMatch();
+            const sentenceOk = checkSentenceMatch();
+            const meaningOk = checkMeaningMatch();
+
+            wordInput.classList.remove('error', 'correct-input');
+            if (wordInput.value.trim() !== '') {
+                wordInput.classList.add(wordOk ? 'correct-input' : 'error');
+            }
+
+            phraseInput.classList.remove('error', 'correct-input');
+            if (phraseInput.value.trim() !== '') {
+                phraseInput.classList.add(phraseOk ? 'correct-input' : 'error');
+            }
+
+            sentenceInput.classList.remove('error', 'correct-input');
+            if (sentenceInput.value.trim() !== '') {
+                sentenceInput.classList.add(sentenceOk ? 'correct-input' : 'error');
+            }
+
+            meaningInput.classList.remove('error', 'correct-input');
+            if (meaningInput.value.trim() !== '') {
+                meaningInput.classList.add(meaningOk ? 'correct-input' : 'error');
+            }
+
+            let errors = [];
+            if (wordInput.value.trim() !== '' && !wordOk) errors.push('单词');
+            if (phraseInput.value.trim() !== '' && !phraseOk) errors.push('词组');
+            if (sentenceInput.value.trim() !== '' && !sentenceOk) errors.push('英文造句');
+            if (meaningInput.value.trim() !== '' && !meaningOk) errors.push('词性+中文释义');
+
+            if (checkAllCorrect()) {
+                tip.innerHTML = '<span class="tip-correct">✅ 全部正确！即将进入下一个...</span>';
+                if (isPlaying) stopPlayLoop();
+                if (isWordOnlyReading) stopWordOnlyReading();
+                setTimeout(nextWord, 800);
+            } else if (errors.length > 0) {
+                tip.innerHTML =
+                    `<span class="tip-error">❌ 以下输入有误：${errors.join('、')}</span><span class="tip-error-item">💡 请检查红色边框的输入框</span>`;
+            } else {
+                const totalFilled = [wordInput, phraseInput, sentenceInput, meaningInput].filter(el => el.value
+                    .trim() !== '').length;
+                if (totalFilled === 0) {
+                    tip.innerHTML = '<span class="tip-hint">⌨️ 请输入四项内容开始练习</span>';
+                } else {
+                    tip.innerHTML = '<span class="tip-hint">⌛ 请继续输入剩余内容...</span>';
+                }
+            }
+        }
+
+        // ===== 输入事件 =====
+        function onInputChange() {
+            if (wordList.length === 0) return;
+            if (checkAllCorrect()) return;
+            updateInputStyles();
+        }
+
+        wordInput.addEventListener('input', onInputChange);
+        phraseInput.addEventListener('input', onInputChange);
+        sentenceInput.addEventListener('input', onInputChange);
+        meaningInput.addEventListener('input', onInputChange);
+
+        // ===== 朗读 =====
+        function speakText(text, callback) {
+            if (!text || text.trim() === '') {
+                if (callback) callback();
+                return;
+            }
+            if ('speechSynthesis' in window) {
+                const utter = new SpeechSynthesisUtterance(text);
+                if (/[\u4e00-\u9fa5]/.test(text)) {
+                    utter.lang = 'zh-CN';
+                } else {
+                    utter.lang = 'en-US';
+                }
+                utter.rate = 0.8;
+                if (callback) {
+                    utter.onend = callback;
+                }
+                window.speechSynthesis.speak(utter);
+            } else {
+                if (callback) callback();
+            }
+        }
+
+        function stopAllSpeak() {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+        }
+
+        // ===== 屏蔽切换 =====
+        function toggleHideMeaning() {
+            isMeaningHidden = !isMeaningHidden;
+            wordChina.classList.toggle('hidden', isMeaningHidden);
+            hideMeaningBtn.textContent = isMeaningHidden ? '👁️ 显示释义' : '👁️ 屏蔽释义';
+            hideMeaningBtn.classList.toggle('active', isMeaningHidden);
+        }
+
+        function toggleHideSentenceCn() {
+            isSentenceCnHidden = !isSentenceCnHidden;
+            sentenceChina.classList.toggle('hidden', isSentenceCnHidden);
+            hideSentenceCnBtn.textContent = isSentenceCnHidden ? '👁️ 显示造句中文' : '👁️ 屏蔽造句中文';
+            hideSentenceCnBtn.classList.toggle('active', isSentenceCnHidden);
+        }
+
+        function toggleHidePhraseCn() {
+            isPhraseCnHidden = !isPhraseCnHidden;
+            phraseCn.classList.toggle('hidden', isPhraseCnHidden);
+            hidePhraseCnBtn.textContent = isPhraseCnHidden ? '👁️ 显示词组释义' : '👁️ 屏蔽词组释义';
+            hidePhraseCnBtn.classList.toggle('active', isPhraseCnHidden);
+        }
+
+        // ===== 跳转 =====
+        function jumpToWord() {
+            if (wordList.length === 0) {
+                jumpMsg.textContent = '⚠️ 请先上传单词表！';
+                return;
+            }
+            const input = jumpInput.value.trim();
+            if (!input) {
+                jumpMsg.textContent = '⚠️ 请输入要跳转的单词！';
+                return;
+            }
+            const lowerInput = input.toLowerCase();
+            let foundIndex = -1;
+            for (let i = 0; i < wordList.length; i++) {
+                if (wordList[i].origin.toLowerCase() === lowerInput) {
+                    foundIndex = i;
+                    break;
+                }
+            }
+            if (foundIndex === -1) {
+                for (let i = 0; i < wordList.length; i++) {
+                    if (wordList[i].origin.toLowerCase().includes(lowerInput)) {
+                        foundIndex = i;
+                        break;
+                    }
+                }
+            }
+            if (foundIndex === -1) {
+                jumpMsg.textContent = `❌ 未找到单词 "${input}"`;
+                return;
+            }
+            jumpMsg.textContent = `✅ 已跳转到 "${wordList[foundIndex].origin}"`;
+            jumpMsg.style.color = '#38a169';
+            setTimeout(() => { jumpMsg.textContent = ''; }, 3000);
+
+            if (isPlaying) stopPlayLoop();
+            if (isAutoAllPlaying) stopAutoAll();
+            if (isWordOnlyReading) stopWordOnlyReading();
+            stopAllSpeak();
+
+            currentIndex = foundIndex;
+            showWord();
+        }
+
+        // ===== 朗读循环 =====
+        function startPlayLoop() {
+            if (wordList.length === 0) return;
+            if (isPlaying) { stopPlayLoop(); return; }
+            if (isAutoAllPlaying) stopAutoAll();
+            if (isWordOnlyReading) stopWordOnlyReading();
+
+            stopAllSpeak();
+            isPlaying = true;
+            playBtn.textContent = '⏹️ 停止朗读';
+            playBtn.classList.add('running');
+
+            doPlayCycle();
+        }
+
+        function doPlayCycle() {
+            if (!isPlaying || wordList.length === 0) return;
+            const w = wordList[currentIndex];
+            const word = w.origin || '';
+            const phraseText = w.phrase || '';
+            const sentenceText = w.sentence || '';
+
+            speakText(word, () => {
+                if (!isPlaying) return;
+                speakText(word, () => {
+                    if (!isPlaying) return;
+                    speakText(phraseText, () => {
+                        if (!isPlaying) return;
+                        speakText(sentenceText, () => {
+                            if (!isPlaying) return;
+                            if (isPlaying) {
+                                playInterval = setTimeout(() => {
+                                    doPlayCycle();
+                                }, 1000);
+                            }
+                        });
+                    });
+                });
+            });
+        }
+
+        function stopPlayLoop() {
+            isPlaying = false;
+            if (playInterval) {
+                clearTimeout(playInterval);
+                playInterval = null;
+            }
+            stopAllSpeak();
+            playBtn.textContent = '🔊 朗读单词';
+            playBtn.classList.remove('running');
+        }
+
+        // ===== 新增：单词阅读（每个单词读2遍，间隔1.5秒，依次全部读完） =====
+        function startWordOnlyReading() {
+            if (wordList.length === 0) {
+                alert('⚠️ 请先上传单词表！');
+                return;
+            }
+            if (isWordOnlyReading) { stopWordOnlyReading(); return; }
+            if (isPlaying) stopPlayLoop();
+            if (isAutoAllPlaying) stopAutoAll();
+
+            stopAllSpeak();
+            isWordOnlyReading = true;
+            wordOnlyIndex = currentIndex;
+            wordOnlyBtn.textContent = '⏹️ 停止单词阅读';
+            wordOnlyBtn.classList.add('running');
+
+            setTimeout(() => { doWordOnlyCycle(); }, 300);
+        }
+
+        function doWordOnlyCycle() {
+            if (!isWordOnlyReading) return;
+            if (wordOnlyIndex >= wordList.length) {
+                stopWordOnlyReading();
+                alert('🎉 全部单词已阅读完毕！');
+                return;
+            }
+
+            const w = wordList[wordOnlyIndex];
+            const word = w.origin || '';
+
+            currentIndex = wordOnlyIndex;
+            showWordStatic();
+            currentSpan.textContent = currentIndex + 1;
+
+            speakText(word, () => {
+                if (!isWordOnlyReading) return;
+                speakText(word, () => {
+                    if (!isWordOnlyReading) return;
+                    wordOnlyIndex++;
+                    if (isWordOnlyReading && wordOnlyIndex < wordList.length) {
+                        wordOnlyInterval = setTimeout(() => {
+                            doWordOnlyCycle();
+                        }, 1000);
+                    } else if (isWordOnlyReading && wordOnlyIndex >= wordList.length) {
+                        stopWordOnlyReading();
+                        alert('🎉 全部单词已阅读完毕！');
+                    }
+                });
+            });
+        }
+
+        function stopWordOnlyReading() {
+            isWordOnlyReading = false;
+            if (wordOnlyInterval) {
+                clearTimeout(wordOnlyInterval);
+                wordOnlyInterval = null;
+            }
+            stopAllSpeak();
+            wordOnlyBtn.textContent = '🔤 单词阅读';
+            wordOnlyBtn.classList.remove('running');
+        }
+
+        // ===== 自动播放全部 =====
+        function startAutoAll() {
+            if (wordList.length === 0) {
+                alert('⚠️ 请先上传单词表！');
+                return;
+            }
+            if (isAutoAllPlaying) { stopAutoAll(); return; }
+            if (isPlaying) stopPlayLoop();
+            if (isWordOnlyReading) stopWordOnlyReading();
+
+            stopAllSpeak();
+            isAutoAllPlaying = true;
+            autoAllIndex = currentIndex;
+            autoAllBtn.textContent = '⏹️ 停止播放';
+            autoAllBtn.classList.add('running');
+            autoAllCnBtn.textContent = '▶️ 自动播放全部（含中文）';
+            autoAllCnBtn.classList.remove('running');
+
+            setTimeout(() => { doAutoAllCycle(); }, 300);
+        }
+
+        function doAutoAllCycle() {
+            if (!isAutoAllPlaying) return;
+            if (autoAllIndex >= wordList.length) {
+                stopAutoAll();
+                alert('🎉 全部单词已播放完毕！');
+                return;
+            }
+
+            const w = wordList[autoAllIndex];
+            const word = w.origin || '';
+            const phraseText = w.phrase || '';
+            const sentenceText = w.sentence || '';
+
+            currentIndex = autoAllIndex;
+            showWordStatic();
+
+            speakText(word, () => {
+                if (!isAutoAllPlaying) return;
+                speakText(word, () => {
+                    if (!isAutoAllPlaying) return;
+                    speakText(phraseText, () => {
+                        if (!isAutoAllPlaying) return;
+                        speakText(sentenceText, () => {
+                            if (!isAutoAllPlaying) return;
+                            autoAllIndex++;
+                            if (isAutoAllPlaying && autoAllIndex < wordList.length) {
+                                autoAllInterval = setTimeout(() => {
+                                    doAutoAllCycle();
+                                }, 2000);
+                            } else if (isAutoAllPlaying && autoAllIndex >= wordList.length) {
+                                stopAutoAll();
+                                alert('🎉 全部单词已播放完毕！');
+                            }
+                        });
+                    });
+                });
+            });
+        }
+
+        function stopAutoAll() {
+            isAutoAllPlaying = false;
+            if (autoAllInterval) {
+                clearTimeout(autoAllInterval);
+                autoAllInterval = null;
+            }
+            stopAllSpeak();
+            autoAllBtn.textContent = '▶️ 自动播放全部';
+            autoAllBtn.classList.remove('running');
+            autoAllCnBtn.textContent = '▶️ 自动播放全部（含中文）';
+            autoAllCnBtn.classList.remove('running');
+        }
+
+        // ===== 自动播放全部（含中文） =====
+        function startAutoAllWithChinese() {
+            if (wordList.length === 0) {
+                alert('⚠️ 请先上传单词表！');
+                return;
+            }
+            if (isAutoAllPlaying) { stopAutoAll(); return; }
+            if (isPlaying) stopPlayLoop();
+            if (isWordOnlyReading) stopWordOnlyReading();
+
+            stopAllSpeak();
+            isAutoAllPlaying = true;
+            autoAllIndex = currentIndex;
+            autoAllCnBtn.textContent = '⏹️ 停止播放';
+            autoAllCnBtn.classList.add('running');
+            autoAllBtn.textContent = '▶️ 自动播放全部';
+            autoAllBtn.classList.remove('running');
+
+            setTimeout(() => { doAutoAllCycleWithChinese(); }, 300);
+        }
+
+        function doAutoAllCycleWithChinese() {
+            if (!isAutoAllPlaying) return;
+            if (autoAllIndex >= wordList.length) {
+                stopAutoAll();
+                alert('🎉 全部单词已播放完毕！');
+                return;
+            }
+
+            const w = wordList[autoAllIndex];
+            const word = w.origin || '';
+            const meaning = w.meaning || '';
+            const phraseText = w.phrase || '';
+            const phraseCnText = w.phraseCn || '';
+            const sentenceText = w.sentence || '';
+
+            currentIndex = autoAllIndex;
+            showWordStatic();
+
+            speakText(word, () => {
+                if (!isAutoAllPlaying) return;
+                speakText(meaning, () => {
+                    if (!isAutoAllPlaying) return;
+                    speakText(word, () => {
+                        if (!isAutoAllPlaying) return;
+                        speakText(meaning, () => {
+                            if (!isAutoAllPlaying) return;
+                            speakText(phraseText, () => {
+                                if (!isAutoAllPlaying) return;
+                                speakText(phraseCnText, () => {
+                                    if (!isAutoAllPlaying) return;
+                                    speakText(sentenceText, () => {
+                                        if (!isAutoAllPlaying) return;
+                                        autoAllIndex++;
+                                        if (isAutoAllPlaying && autoAllIndex < wordList
+                                            .length) {
+                                            autoAllInterval = setTimeout(() => {
+                                                doAutoAllCycleWithChinese();
+                                            }, 2000);
+                                        } else if (isAutoAllPlaying && autoAllIndex >=
+                                            wordList.length) {
+                                            stopAutoAll();
+                                            alert('🎉 全部单词已播放完毕！');
+                                        }
+                                    });
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+        }
+
+        // ===== 显示 =====
+        function showWordStatic() {
+            if (wordList.length === 0) return;
+            const w = wordList[currentIndex];
+            wordText.textContent = w.origin || '';
+            phonetic.textContent = w.phonetic || '';
+            wordChina.textContent = w.meaning || '';
+            wordChina.classList.toggle('hidden', isMeaningHidden);
+            phrase.textContent = w.phrase || '';
+            phraseCn.textContent = w.phraseCn || '';
+            phraseCn.classList.toggle('hidden', isPhraseCnHidden);
+            sentence.textContent = w.sentence || '';
+            sentenceChina.textContent = w.sentenceCn || '';
+            sentenceChina.classList.toggle('hidden', isSentenceCnHidden);
+            currentSpan.textContent = currentIndex + 1;
+        }
+
+        function showWord() {
+            if (isPlaying) stopPlayLoop();
+            if (isAutoAllPlaying) stopAutoAll();
+            if (isWordOnlyReading) stopWordOnlyReading();
+            stopAllSpeak();
+
+            if (wordList.length === 0) {
+                wordText.textContent = '请上传 Excel 文件';
+                phonetic.textContent = '';
+                wordChina.textContent = '';
+                phrase.textContent = '';
+                phraseCn.textContent = '';
+                sentence.textContent = '';
+                sentenceChina.textContent = '';
+                return;
+            }
+
+            const w = wordList[currentIndex];
+            wordText.textContent = w.origin || '';
+            phonetic.textContent = w.phonetic || '';
+            wordChina.textContent = w.meaning || '';
+            wordChina.classList.toggle('hidden', isMeaningHidden);
+            phrase.textContent = w.phrase || '';
+            phraseCn.textContent = w.phraseCn || '';
+            phraseCn.classList.toggle('hidden', isPhraseCnHidden);
+            sentence.textContent = w.sentence || '';
+            sentenceChina.textContent = w.sentenceCn || '';
+            sentenceChina.classList.toggle('hidden', isSentenceCnHidden);
+            currentSpan.textContent = currentIndex + 1;
+
+            wordInput.value = '';
+            phraseInput.value = '';
+            sentenceInput.value = '';
+            meaningInput.value = '';
+            clearAllInputStyles();
+            tip.innerHTML = '<span class="tip-hint">⌨️ 请输入四项内容开始练习</span>';
+            jumpInput.value = '';
+
+            setTimeout(() => {
+                if (!isPlaying && !isAutoAllPlaying && !isWordOnlyReading) {
+                    startPlayLoop();
+                }
+            }, 300);
+        }
+
+        function prevWord() {
+            if (wordList.length === 0) return;
+            if (isPlaying) stopPlayLoop();
+            if (isAutoAllPlaying) stopAutoAll();
+            if (isWordOnlyReading) stopWordOnlyReading();
+            currentIndex = (currentIndex - 1 + wordList.length) % wordList.length;
+            showWord();
+        }
+
+        function nextWord() {
+            if (wordList.length === 0) return;
+            if (isPlaying) stopPlayLoop();
+            if (isAutoAllPlaying) stopAutoAll();
+            if (isWordOnlyReading) stopWordOnlyReading();
+            currentIndex = (currentIndex + 1) % wordList.length;
+            showWord();
+        }
+
+        // ===== 按钮事件 =====
+        playBtn.addEventListener('click', startPlayLoop);
+        wordOnlyBtn.addEventListener('click', startWordOnlyReading);
+        stopBtn.addEventListener('click', () => {
+            if (isPlaying) stopPlayLoop();
+            if (isAutoAllPlaying) stopAutoAll();
+            if (isWordOnlyReading) stopWordOnlyReading();
+            stopAllSpeak();
+        });
+        autoAllBtn.addEventListener('click', startAutoAll);
+        autoAllCnBtn.addEventListener('click', startAutoAllWithChinese);
+        hideMeaningBtn.addEventListener('click', toggleHideMeaning);
+        hidePhraseCnBtn.addEventListener('click', toggleHidePhraseCn);
+        hideSentenceCnBtn.addEventListener('click', toggleHideSentenceCn);
+        prevBtn.addEventListener('click', prevWord);
+        nextBtn.addEventListener('click', nextWord);
+        jumpBtn.addEventListener('click', jumpToWord);
+        jumpInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') jumpToWord();
+        });
+
+        wordText.addEventListener('click', () => {
+            if (wordList.length) {
+                speakText(wordList[currentIndex].origin);
+            }
+        });
+
+        // ===== 上传 Excel =====
+        wordFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (isPlaying) stopPlayLoop();
+            if (isAutoAllPlaying) stopAutoAll();
+            if (isWordOnlyReading) stopWordOnlyReading();
+            stopAllSpeak();
+
+            wordList = [];
+            currentIndex = 0;
+            totalSpan.textContent = 0;
+            currentSpan.textContent = 0;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+                    jsonData.forEach(row => {
+                        wordList.push({
+                            origin: row['单词'] || '',
+                            phonetic: row['英文音标'] || '',
+                            meaning: row['词性+中文释义'] || '',
+                            sentence: row['英文造句'] || '',
+                            sentenceCn: row['造句中文'] || '',
+                            phrase: row['词组'] || '',
+                            phraseCn: row['词组释义'] || ''
+                        });
+                    });
+
+                    if (wordList.length > 0) {
+                        currentIndex = 0;
+                        totalSpan.textContent = wordList.length;
+                        showWord();
+                        alert(`✅ 导入成功！共 ${wordList.length} 个单词`);
+                    } else {
+                        alert('⚠️ 未读取到单词，请检查 Excel 表头是否为：单词，英文音标，词性+中文释义，英文造句，造句中文，词组，词组释义');
+                    }
+                } catch (err) {
+                    alert('❌ Excel 解析失败：' + err.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        showWord();
+    </script>
+</body>
+</html>
